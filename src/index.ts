@@ -6,19 +6,18 @@ import next from "next";
 import socket from "./socket";
 
 const port = 5000;
-const nextApp = next({ dev: true });
-const handle = nextApp.getRequestHandler();
+// const nextApp = next({ dev: true });
+// const handle = nextApp.getRequestHandler();
 
 //  nextApp.prepare().then(() => {
 const app: Express = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer);
-app.get("/test", (req: Request, res: Response) => {
-  res.json({status: true, message: "Ok"});
+
+app.get("/", (req: Request, res: Response) => {
+  res.json({ status: true, message: "Ok" });
 });
-app.get("*", (req, res) => {
-  return handle(req, res);
-});
+
 httpServer.listen(port, "0.0.0.0", () => {
   logger.info(`Server is listening port ${port}`);
   socket({ io });
