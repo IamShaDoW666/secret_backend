@@ -1,9 +1,8 @@
-import logger from "./utils/logger";
 import express, { Request, Response, Express } from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
-import next from "next";
 import socket from "./socket";
+import logger from "./utils/logger";
 
 const port = 5000;
 // const nextApp = next({ dev: true });
