@@ -31,7 +31,7 @@ function socket({ io }: { io: Server }) {
     logger.info(`Client connected ${socket.id}  (${JSON.stringify(rooms)})`);
     socket.emit(EVENTS.SERVER.ROOMS, {connections: io.sockets.sockets.size});
     socket.on(EVENTS.CLIENT.JOINED, () => {
-      socket.emit(EVENTS.SERVER.ROOMS, {connections: io.sockets.sockets.size});
+      socket.to("1").emit(EVENTS.SERVER.ROOMS, {connections: io.sockets.sockets.size});
       // logger.info(`Joinedd ${io.sockets.sockets.size}`)
       // if (io.sockets.sockets.size > 1) {
       //   logger.info("INCHAT");
@@ -47,7 +47,7 @@ function socket({ io }: { io: Server }) {
      */
     socket.on(EVENTS.disconnect, () => {
       logger.info(`Client disconnected ${socket.id}`);
-      socket.emit(EVENTS.SERVER.ROOMS, {connections: io.sockets.sockets.size});
+      socket.to("1").emit(EVENTS.SERVER.ROOMS, {connections: io.sockets.sockets.size});
       if (io.sockets.sockets.size > 1) {
         logger.info("INCHAT");
         socket.to("1").emit(EVENTS.SERVER.IN_CHAT);
