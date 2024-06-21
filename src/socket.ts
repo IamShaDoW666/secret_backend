@@ -2,19 +2,21 @@ import { Server, Socket } from "socket.io";
 import logger from "./utils/logger";
 import { nanoid } from "nanoid";
 
-
 const EVENTS = {
   connection: "connection",
-  disconnect: 'disconnect',
+  disconnect: "disconnect",
   CLIENT: {
     CREATE_ROOM: "CREATE_ROOM",
     SEND_ROOM_MESSAGE: "SEND_ROOM_MESSAGE",
     JOIN_ROOM: "JOIN_ROOM",
+    JOINED: "JOINED",
   },
   SERVER: {
     ROOMS: "ROOMS",
     JOINED_ROOM: "JOINED_ROOM",
     ROOM_MESSAGE: "ROOM_MESSAGE",
+    IN_CHAT: "IN_CHAT",
+    LEFT_CHAT: "LEFT_CHAT",
   },
 };
 
@@ -25,12 +27,32 @@ function socket({ io }: { io: Server }) {
 
   io.on(EVENTS.connection, (socket: Socket) => {
     socket.emit(EVENTS.SERVER.ROOMS, rooms);
-    socket.join('1')
+    socket.join("1");
     logger.info(`Client connected ${socket.id}  (${JSON.stringify(rooms)})`);
+    socket.on(EVENTS.CLIENT.JOINED, () => {
+      logger.info(`Joinedd ${io.sockets.sockets.size}`)
+      if (io.sockets.sockets.size > 1) {
+        logger.info("INCHAT");
+        socket.to("1").emit(EVENTS.SERVER.IN_CHAT);
+      } else {
+        logger.info("LEFT");
+        socket.to("1").emit(EVENTS.SERVER.LEFT_CHAT);
+      }
+    });
+
     /**
      * When a user disconnects
      */
-    socket.on(EVENTS.disconnect, () => logger.info(`Client disconnected ${socket.id}`))
+    socket.on(EVENTS.disconnect, () => {
+      logger.info(`Client disconnected ${socket.id}`);
+      if (io.sockets.sockets.size > 1) {
+        logger.info("INCHAT");
+        socket.to("1").emit(EVENTS.SERVER.IN_CHAT);
+      } else {
+        logger.info("LEFT");
+        socket.to("1").emit(EVENTS.SERVER.LEFT_CHAT);
+      }
+    });
 
     /*
      * When a user creates a new room
@@ -63,7 +85,7 @@ function socket({ io }: { io: Server }) {
       EVENTS.CLIENT.SEND_ROOM_MESSAGE,
       ({ roomId, message, username }) => {
         const date = new Date();
-        logger.info(`New Message from ${username}: ${message}`)
+        logger.info(`New Message from ${username}: ${message}`);
         socket.to(roomId).emit(EVENTS.SERVER.ROOM_MESSAGE, {
           message,
           username,

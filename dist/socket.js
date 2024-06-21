@@ -7,16 +7,19 @@ const logger_1 = __importDefault(require("./utils/logger"));
 const nanoid_1 = require("nanoid");
 const EVENTS = {
     connection: "connection",
-    disconnect: 'disconnect',
+    disconnect: "disconnect",
     CLIENT: {
         CREATE_ROOM: "CREATE_ROOM",
         SEND_ROOM_MESSAGE: "SEND_ROOM_MESSAGE",
         JOIN_ROOM: "JOIN_ROOM",
+        JOINED: "JOINED",
     },
     SERVER: {
         ROOMS: "ROOMS",
         JOINED_ROOM: "JOINED_ROOM",
         ROOM_MESSAGE: "ROOM_MESSAGE",
+        IN_CHAT: "IN_CHAT",
+        LEFT_CHAT: "LEFT_CHAT",
     },
 };
 const rooms = {};
@@ -24,12 +27,33 @@ function socket({ io }) {
     logger_1.default.info(`Sockets enabled`);
     io.on(EVENTS.connection, (socket) => {
         socket.emit(EVENTS.SERVER.ROOMS, rooms);
-        socket.join('1');
+        socket.join("1");
         logger_1.default.info(`Client connected ${socket.id}  (${JSON.stringify(rooms)})`);
+        socket.on(EVENTS.CLIENT.JOINED, () => {
+            logger_1.default.info(`Joinedd ${io.sockets.sockets.size}`);
+            if (io.sockets.sockets.size > 1) {
+                logger_1.default.info("INCHAT");
+                socket.to("1").emit(EVENTS.SERVER.IN_CHAT);
+            }
+            else {
+                logger_1.default.info("LEFT");
+                socket.to("1").emit(EVENTS.SERVER.LEFT_CHAT);
+            }
+        });
         /**
          * When a user disconnects
          */
-        socket.on(EVENTS.disconnect, () => logger_1.default.info(`Client disconnected ${socket.id}`));
+        socket.on(EVENTS.disconnect, () => {
+            logger_1.default.info(`Client disconnected ${socket.id}`);
+            if (io.sockets.sockets.size > 1) {
+                logger_1.default.info("INCHAT");
+                socket.to("1").emit(EVENTS.SERVER.IN_CHAT);
+            }
+            else {
+                logger_1.default.info("LEFT");
+                socket.to("1").emit(EVENTS.SERVER.LEFT_CHAT);
+            }
+        });
         /*
          * When a user creates a new room
          */
