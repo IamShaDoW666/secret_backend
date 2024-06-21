@@ -26,9 +26,9 @@ const rooms = {};
 function socket({ io }) {
     logger_1.default.info(`Sockets enabled`);
     io.on(EVENTS.connection, (socket) => {
-        socket.emit(EVENTS.SERVER.ROOMS, rooms);
         socket.join("1");
         logger_1.default.info(`Client connected ${socket.id}  (${JSON.stringify(rooms)})`);
+        socket.emit(EVENTS.SERVER.ROOMS, { connections: io.sockets.sockets.size });
         socket.on(EVENTS.CLIENT.JOINED, () => {
             logger_1.default.info(`Joinedd ${io.sockets.sockets.size}`);
             if (io.sockets.sockets.size > 1) {
