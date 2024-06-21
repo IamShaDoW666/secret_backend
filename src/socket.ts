@@ -28,7 +28,7 @@ function socket({ io }: { io: Server }) {
   io.on(EVENTS.connection, (socket: Socket) => {
     socket.join("1");
     logger.info(`Client connected ${socket.id}  (${JSON.stringify(rooms)})`);
-    socket.emit(EVENTS.SERVER.ROOMS, io.sockets.sockets.size);
+    socket.emit(EVENTS.SERVER.ROOMS, {connections: io.sockets.sockets.size});
     socket.on(EVENTS.CLIENT.JOINED, () => {
       logger.info(`Joinedd ${io.sockets.sockets.size}`)
       if (io.sockets.sockets.size > 1) {
