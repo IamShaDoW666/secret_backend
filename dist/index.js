@@ -7,6 +7,7 @@ const express_1 = __importDefault(require("express"));
 const http_1 = require("http");
 const socket_io_1 = require("socket.io");
 const socket_1 = __importDefault(require("./socket"));
+const logger_1 = __importDefault(require("./utils/logger"));
 const port = 5000;
 // const nextApp = next({ dev: true });
 // const handle = nextApp.getRequestHandler();
@@ -18,7 +19,7 @@ app.get("/", (req, res) => {
     res.json({ status: true, message: "Ok" });
 });
 httpServer.listen(port, "0.0.0.0", () => {
-    // logger.info(`Server is listening port ${port}`);
+    logger_1.default.info(`Server is listening port ${port}`);
     (0, socket_1.default)({ io });
 });
 // });
