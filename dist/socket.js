@@ -32,14 +32,15 @@ function socket({ io }) {
         socket.emit(EVENTS.SERVER.ROOMS, { connections: io.sockets.sockets.size });
         socket.on(EVENTS.CLIENT.JOINED, () => {
             socket.emit(EVENTS.SERVER.ROOMS, { connections: io.sockets.sockets.size });
-            // logger.info(`Joinedd ${io.sockets.sockets.size}`)
-            // if (io.sockets.sockets.size > 1) {
-            //   logger.info("INCHAT");
-            //   socket.to("1").emit(EVENTS.SERVER.IN_CHAT);
-            // } else {
-            //   logger.info("LEFT");
-            //   socket.to("1").emit(EVENTS.SERVER.LEFT_CHAT);
-            // }
+            logger_1.default.info(`Joinedd ${io.sockets.sockets.size}`);
+            if (io.sockets.sockets.size > 1) {
+                logger_1.default.info("INCHAT");
+                socket.to("1").emit(EVENTS.SERVER.IN_CHAT);
+            }
+            else {
+                logger_1.default.info("LEFT");
+                socket.to("1").emit(EVENTS.SERVER.LEFT_CHAT);
+            }
         });
         /**
          * When a user disconnects
