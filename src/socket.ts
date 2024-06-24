@@ -1,6 +1,8 @@
 import { Server, Socket } from "socket.io";
 import { nanoid } from "nanoid";
 import { addMessageToQueue, getAllMessages, redis } from "./utils/redis";
+import { getNotificationMessage, getReciever, sendPoke } from "./utils/common";
+import admin from 'firebase-admin'
 
 const EVENTS = {
   connection: "connection",
@@ -11,6 +13,7 @@ const EVENTS = {
     SEND_MESSAGE: "SEND_MESSAGE",
     JOIN_ROOM: "JOIN_ROOM",
     DOWNSTREAM: "DOWNSTREAM",
+    POKE: "POKE",
   },
   SERVER: {
     ROOMS: "ROOMS",
@@ -19,14 +22,13 @@ const EVENTS = {
     NEW_MESSAGE: "NEW_MESSAGE",
     CONNECTIONS: "CONNECTIONS",
     UPSTREAM: "UPSTREAM",
+    POKED: "POKED",
   },
 };
 
 async function socket({ io }: { io: Server }) {
-  const redisClient = await redis();
-  let liveConnections = Number(await redisClient.get("connections")) ?? 0;
+  let liveConnections = Number(await redis.get("connections")) ?? 0;
   io.on(EVENTS.connection, async (socket: Socket) => {
-
     socket.onAny((event) => {
       console.warn(`EVENT: ${event}`);
     });
@@ -36,17 +38,17 @@ async function socket({ io }: { io: Server }) {
 
     const username = socket.handshake.query.username as string;
     socket.data.username = username;
-    if (!(await redisClient.exists(username))) {
+    if (!(await redis.exists(username))) {
       socket.data.username = username;
-      redisClient.hSet(username, {
+      redis.hSet(username, {
         clientId: socket.id,
         joined: new Date().toJSON(),
         username,
-      }); 
-      console.log("BEFORE: CONNECTIONSS", liveConnections)
+      });
+      console.log("BEFORE: CONNECTIONSS", liveConnections);
       liveConnections++;
-      console.log("ADD CONNECTIONSS", liveConnections)
-      redisClient.set("connections", liveConnections);
+      console.log("ADD CONNECTIONSS", liveConnections);
+      redis.set("connections", liveConnections);
     }
 
     console.info(`Client connected ${socket.id} ${liveConnections}`);
@@ -55,13 +57,12 @@ async function socket({ io }: { io: Server }) {
       connections: liveConnections,
     });
 
-    if (await redisClient.exists(`queue:${username}`)) {
+    if (await redis.exists(`queue:${username}`)) {
       socket.emit(
         EVENTS.SERVER.UPSTREAM,
-        await getAllMessages(username, redisClient)
+        await getAllMessages(username, redis)
       );
     }
-
 
     /**
      * When a user disconnects
@@ -69,10 +70,10 @@ async function socket({ io }: { io: Server }) {
     socket.on(EVENTS.disconnect, async () => {
       console.log(`Client disconnected ${socket.id}`);
       console.log(socket.data.username);
-      if (await redisClient.exists(socket.data.username)) {
-        redisClient.del(socket.data.username);
+      if (await redis.exists(socket.data.username)) {
+        redis.del(socket.data.username);
         liveConnections--;
-        redisClient.set("connections", liveConnections);
+        redis.set("connections", liveConnections);
       }
 
       io.emit(EVENTS.SERVER.CONNECTIONS, {
@@ -107,30 +108,31 @@ async function socket({ io }: { io: Server }) {
      * When a user sends a room message
      */
 
-    socket.on(
-      EVENTS.CLIENT.SEND_MESSAGE,
-      async ({ message, username }) => {
-        const date = new Date();
-        if (liveConnections > 1) {
-          console.log(`NEW MESSAGE FROM ${username}`)
-          socket.broadcast.emit(EVENTS.SERVER.NEW_MESSAGE, {
+    socket.on(EVENTS.CLIENT.SEND_MESSAGE, async ({ message, username }) => {
+      const date = new Date();
+      if (liveConnections > 1) {
+        console.log(`NEW MESSAGE FROM ${username}`);
+        socket.broadcast.emit(EVENTS.SERVER.NEW_MESSAGE, {
+          message,
+          username,
+          time: `${date.getHours()}:${date.getMinutes()}`,
+        });
+      } else {
+        addMessageToQueue(
+          getReciever(username),
+          {
             message,
-            username,
             time: `${date.getHours()}:${date.getMinutes()}`,
-          });
-        } else {
-          addMessageToQueue(
-            username === "Malu" ? "Milan" : "Malu",
-            {
-              message,
-              time: `${date.getHours()}:${date.getMinutes()}`,
-              username,
-            },
-            redisClient
-          );
+            username,
+          },
+          redis
+        );
+        // Send notification is message is to me
+        if (username != "Milan") {
+          sendPoke(username, message)
         }
       }
-    );
+    });
 
     /*
      * When a user joins a room
@@ -142,9 +144,16 @@ async function socket({ io }: { io: Server }) {
     });
 
     socket.on(EVENTS.CLIENT.DOWNSTREAM, async (username: string) => {
-      if (await redisClient.exists(`queue:${username}`)) {
-        redisClient.del(`queue:${username}`);
+      if (await redis.exists(`queue:${username}`)) {
+        redis.del(`queue:${username}`);
       }
+    });
+
+    /**
+     * When a user is poked
+     */
+    socket.on(EVENTS.CLIENT.POKE, async (username: string) => {
+     sendPoke(username)
     });
   });
 }

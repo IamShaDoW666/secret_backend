@@ -9,20 +9,30 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllMessages = exports.addMessageToQueue = exports.redis = exports.client = void 0;
+exports.getAllMessages = exports.addMessageToQueue = exports.useRedis = exports.redis = void 0;
 const redis_1 = require("redis");
-exports.client = (0, redis_1.createClient)({
-    password: "WTMdjPmMqMZVXB95PQZGpmsvAKz3Tppl",
+//LIVE
+// export const client = createClient({
+//   password: "WTMdjPmMqMZVXB95PQZGpmsvAKz3Tppl",
+//   socket: {
+//     host: "redis-12998.c264.ap-south-1-1.ec2.redns.redis-cloud.com",
+//     port: 12998,
+//   },
+// });
+// LOCAL
+exports.redis = (0, redis_1.createClient)({
+    password: 'F2qRiYnMyUWGTh7yCptYTuYXpjTFxrmu',
     socket: {
-        host: "redis-12998.c264.ap-south-1-1.ec2.redns.redis-cloud.com",
-        port: 12998,
-    },
+        host: 'redis-14216.c264.ap-south-1-1.ec2.redns.redis-cloud.com',
+        port: 14216
+    }
 });
-exports.client.on("error", (err) => console.log("Redis Client Error", err));
-const redis = () => __awaiter(void 0, void 0, void 0, function* () {
-    return yield exports.client.connect();
+exports.redis.connect();
+exports.redis.on("error", (err) => console.log("Redis Client Error", err));
+const useRedis = () => __awaiter(void 0, void 0, void 0, function* () {
+    return yield exports.redis.connect();
 });
-exports.redis = redis;
+exports.useRedis = useRedis;
 function addMessageToQueue(username, message, client) {
     return __awaiter(this, void 0, void 0, function* () {
         const messageData = JSON.stringify(message);

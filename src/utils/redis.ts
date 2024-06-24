@@ -1,19 +1,33 @@
-import { createClient, type RedisClientType } from "redis";
+import { createClient } from "redis";
 import { Message } from "../types";
-import { promisify } from "util";
+import { promisify } from 'util';
 
-export const client = createClient({
-  password: "WTMdjPmMqMZVXB95PQZGpmsvAKz3Tppl",
+//LIVE
+
+// export const client = createClient({
+//   password: "WTMdjPmMqMZVXB95PQZGpmsvAKz3Tppl",
+//   socket: {
+//     host: "redis-12998.c264.ap-south-1-1.ec2.redns.redis-cloud.com",
+//     port: 12998,
+//   },
+// });
+
+// LOCAL
+
+export const redis = createClient({
+  password: 'F2qRiYnMyUWGTh7yCptYTuYXpjTFxrmu',
   socket: {
-    host: "redis-12998.c264.ap-south-1-1.ec2.redns.redis-cloud.com",
-    port: 12998,
-  },
+      host: 'redis-14216.c264.ap-south-1-1.ec2.redns.redis-cloud.com',
+      port: 14216
+  }
 });
 
-client.on("error", (err) => console.log("Redis Client Error", err));
+redis.connect();
 
-export const redis = async () => {
-  return await client.connect();
+redis.on("error", (err) => console.log("Redis Client Error", err));
+
+export const useRedis = async () => {
+  return await redis.connect();
 };
 
 export async function addMessageToQueue(

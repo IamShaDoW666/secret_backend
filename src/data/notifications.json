@@ -1,0 +1,60 @@
+{
+  "taskMessages": [
+    {
+      "heading": "Got a task to complete?",
+      "body": "Let's tackle it together with our task scheduler app!"
+    },
+    {
+      "heading": "Reminder: Time to check off that task!",
+      "body": "Stay on track and accomplish your goals."
+    },
+    {
+      "heading": "Task alert!",
+      "body": "It's time to wrap up that important project. You're almost there!"
+    },
+    {
+      "heading": "Don't forget to finish your task!",
+      "body": "Feel accomplished as you mark another task off your list."
+    },
+    {
+      "heading": "Got plans?",
+      "body": "We're here to keep you on track with your tasks. Let's make progress!"
+    },
+    {
+      "heading": "Task time!",
+      "body": "Remember to complete what you set out to do today. You've got this!"
+    },
+    {
+      "heading": "Ready to mark another task as completed?",
+      "body": "Let's celebrate your progress together!"
+    },
+    {
+      "heading": "Time to focus and complete your tasks!",
+      "body": "Use our app to boost productivity and achieve your goals."
+    },
+    {
+      "heading": "Reminder: You've got tasks waiting for your attention!",
+      "body": "Stay organized and efficient with our task scheduler."
+    },
+    {
+      "heading": "Reminder: You've got tasks waiting for your attention!",
+      "body": "Don't forget to finish that task and celebrate your progress."
+    },
+    {
+      "heading": "Don't forget to finish your task!",
+      "body": "Get ready to organize your tasks effortlessly with our app."
+    },
+    {
+      "heading": "Welcome to our task scheduler app!",
+      "body": "Let's make every day productive and organized for you."
+    },
+    {
+      "heading": "Welcome to our task scheduler app!",
+      "body": "Time to streamline your schedule and boost productivity. Let's begin!"
+    },
+    {
+      "heading": "Got a task to complete?",
+      "body": "Your personalized task scheduler is ready to help. Let's start planning!"
+    }
+  ]
+}
