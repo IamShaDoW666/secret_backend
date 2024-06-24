@@ -2,25 +2,25 @@ import { createClient } from "redis";
 import { Message } from "../types";
 import { promisify } from 'util';
 
-//LIVE
+// LIVE
 
-// export const client = createClient({
-//   password: "WTMdjPmMqMZVXB95PQZGpmsvAKz3Tppl",
-//   socket: {
-//     host: "redis-12998.c264.ap-south-1-1.ec2.redns.redis-cloud.com",
-//     port: 12998,
-//   },
-// });
+export const redis = createClient({
+  password: "WTMdjPmMqMZVXB95PQZGpmsvAKz3Tppl",
+  socket: {
+    host: "redis-12998.c264.ap-south-1-1.ec2.redns.redis-cloud.com",
+    port: 12998,
+  },
+});
 
 // LOCAL
 
-export const redis = createClient({
-  password: 'F2qRiYnMyUWGTh7yCptYTuYXpjTFxrmu',
-  socket: {
-      host: 'redis-14216.c264.ap-south-1-1.ec2.redns.redis-cloud.com',
-      port: 14216
-  }
-});
+// export const redis = createClient({
+//   password: 'F2qRiYnMyUWGTh7yCptYTuYXpjTFxrmu',
+//   socket: {
+//       host: 'redis-14216.c264.ap-south-1-1.ec2.redns.redis-cloud.com',
+//       port: 14216
+//   }
+// });
 
 redis.connect();
 
