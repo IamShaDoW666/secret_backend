@@ -27,12 +27,12 @@ async function socket({ io }: { io: Server }) {
   let liveConnections = Number(await redisClient.get("connections")) ?? 0;
   io.on(EVENTS.connection, async (socket: Socket) => {
 
-    // socket.onAny((event) => {
-    //   logger.warn(`EVENT: ${event}`);
-    // });
-    // socket.onAnyOutgoing((event) => {
-    //   logger.warn(`EVENT ==>: ${event}`);
-    // });
+    socket.onAny((event) => {
+      console.warn(`EVENT: ${event}`);
+    });
+    socket.onAnyOutgoing((event) => {
+      console.warn(`EVENT ==>: ${event}`);
+    });
 
     const username = socket.handshake.query.username as string;
     socket.data.username = username;
@@ -42,12 +42,14 @@ async function socket({ io }: { io: Server }) {
         clientId: socket.id,
         joined: new Date().toJSON(),
         username,
-      });
+      }); 
+      console.log("BEFORE: CONNECTIONSS", liveConnections)
       liveConnections++;
+      console.log("ADD CONNECTIONSS", liveConnections)
       redisClient.set("connections", liveConnections);
     }
 
-    // logger.info(`Client connected ${socket.id} ${liveConnections}`);
+    console.info(`Client connected ${socket.id} ${liveConnections}`);
 
     io.emit(EVENTS.SERVER.CONNECTIONS, {
       connections: liveConnections,
@@ -65,7 +67,7 @@ async function socket({ io }: { io: Server }) {
      * When a user disconnects
      */
     socket.on(EVENTS.disconnect, async () => {
-      // logger.info(`Client disconnected ${socket.id}`);
+      console.log(`Client disconnected ${socket.id}`);
       console.log(socket.data.username);
       if (await redisClient.exists(socket.data.username)) {
         redisClient.del(socket.data.username);

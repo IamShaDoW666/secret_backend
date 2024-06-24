@@ -36,12 +36,12 @@ function socket({ io }) {
         const redisClient = yield (0, redis_1.redis)();
         let liveConnections = (_a = Number(yield redisClient.get("connections"))) !== null && _a !== void 0 ? _a : 0;
         io.on(EVENTS.connection, (socket) => __awaiter(this, void 0, void 0, function* () {
-            // socket.onAny((event) => {
-            //   logger.warn(`EVENT: ${event}`);
-            // });
-            // socket.onAnyOutgoing((event) => {
-            //   logger.warn(`EVENT ==>: ${event}`);
-            // });
+            socket.onAny((event) => {
+                console.warn(`EVENT: ${event}`);
+            });
+            socket.onAnyOutgoing((event) => {
+                console.warn(`EVENT ==>: ${event}`);
+            });
             const username = socket.handshake.query.username;
             socket.data.username = username;
             if (!(yield redisClient.exists(username))) {
@@ -51,10 +51,12 @@ function socket({ io }) {
                     joined: new Date().toJSON(),
                     username,
                 });
+                console.log("BEFORE: CONNECTIONSS", liveConnections);
                 liveConnections++;
+                console.log("ADD CONNECTIONSS", liveConnections);
                 redisClient.set("connections", liveConnections);
             }
-            // logger.info(`Client connected ${socket.id} ${liveConnections}`);
+            console.info(`Client connected ${socket.id} ${liveConnections}`);
             io.emit(EVENTS.SERVER.CONNECTIONS, {
                 connections: liveConnections,
             });
@@ -65,7 +67,7 @@ function socket({ io }) {
              * When a user disconnects
              */
             socket.on(EVENTS.disconnect, () => __awaiter(this, void 0, void 0, function* () {
-                // logger.info(`Client disconnected ${socket.id}`);
+                console.log(`Client disconnected ${socket.id}`);
                 console.log(socket.data.username);
                 if (yield redisClient.exists(socket.data.username)) {
                     redisClient.del(socket.data.username);
