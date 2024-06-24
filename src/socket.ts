@@ -1,7 +1,6 @@
 import { Server, Socket } from "socket.io";
-import logger from "./utils/logger";
 import { nanoid } from "nanoid";
-import { Message } from "./types";
+import { addMessageToQueue, getAllMessages, redis } from "./utils/redis";
 
 const EVENTS = {
   connection: "connection",
@@ -9,63 +8,74 @@ const EVENTS = {
   CLIENT: {
     CREATE_ROOM: "CREATE_ROOM",
     SEND_ROOM_MESSAGE: "SEND_ROOM_MESSAGE",
+    SEND_MESSAGE: "SEND_MESSAGE",
     JOIN_ROOM: "JOIN_ROOM",
-    JOINED: "JOINED",
     DOWNSTREAM: "DOWNSTREAM",
   },
   SERVER: {
     ROOMS: "ROOMS",
     JOINED_ROOM: "JOINED_ROOM",
     ROOM_MESSAGE: "ROOM_MESSAGE",
-    IN_CHAT: "IN_CHAT",
-    LEFT_CHAT: "LEFT_CHAT",
+    NEW_MESSAGE: "NEW_MESSAGE",
     CONNECTIONS: "CONNECTIONS",
-    UPSTREAM: "UPSTREAM",    
+    UPSTREAM: "UPSTREAM",
   },
 };
 
-// const rooms: Record<string, { name: string }> = {};
-let messageQueue: Message[] = [];
+async function socket({ io }: { io: Server }) {
+  const redisClient = await redis();
+  let liveConnections = Number(await redisClient.get("connections")) ?? 0;
+  io.on(EVENTS.connection, async (socket: Socket) => {
 
-function socket({ io }: { io: Server }) {
-  logger.info(`Sockets enabled`);
-  console.log(`INITIAL QUEUE => ${messageQueue}`);
-  io.on(EVENTS.connection, (socket: Socket) => {
-    socket.join("1");
-    logger.info(`Client connected ${socket.id}`);
-    socket.emit(EVENTS.SERVER.ROOMS, { connections: io.sockets.sockets.size });
-    socket.on(EVENTS.CLIENT.JOINED, () => {
-      socket.emit(EVENTS.SERVER.ROOMS, {
-        connections: io.sockets.sockets.size,
+    // socket.onAny((event) => {
+    //   logger.warn(`EVENT: ${event}`);
+    // });
+    // socket.onAnyOutgoing((event) => {
+    //   logger.warn(`EVENT ==>: ${event}`);
+    // });
+
+    const username = socket.handshake.query.username as string;
+    socket.data.username = username;
+    if (!(await redisClient.exists(username))) {
+      socket.data.username = username;
+      redisClient.hSet(username, {
+        clientId: socket.id,
+        joined: new Date().toJSON(),
+        username,
       });
-      logger.info(`Joinedd ${io.sockets.sockets.size}`);
+      liveConnections++;
+      redisClient.set("connections", liveConnections);
+    }
 
-      socket.emit(EVENTS.SERVER.UPSTREAM, messageQueue);
+    // logger.info(`Client connected ${socket.id} ${liveConnections}`);
 
-      if (io.sockets.sockets.size > 1) {
-        logger.info("INCHAT");
-        socket.to("1").emit(EVENTS.SERVER.IN_CHAT);
-      } else {
-        logger.info("LEFT");
-        socket.to("1").emit(EVENTS.SERVER.LEFT_CHAT);
-      }
+    io.emit(EVENTS.SERVER.CONNECTIONS, {
+      connections: liveConnections,
     });
+
+    if (await redisClient.exists(`queue:${username}`)) {
+      socket.emit(
+        EVENTS.SERVER.UPSTREAM,
+        await getAllMessages(username, redisClient)
+      );
+    }
+
 
     /**
      * When a user disconnects
      */
-    socket.on(EVENTS.disconnect, () => {
-      logger.info(`Client disconnected ${socket.id}`);
-      socket.emit(EVENTS.SERVER.ROOMS, {
-        connections: io.sockets.sockets.size,
-      });
-      if (io.sockets.sockets.size > 1) {
-        logger.info("INCHAT");
-        socket.to("1").emit(EVENTS.SERVER.IN_CHAT);
-      } else {
-        logger.info("LEFT");
-        socket.to("1").emit(EVENTS.SERVER.LEFT_CHAT);
+    socket.on(EVENTS.disconnect, async () => {
+      // logger.info(`Client disconnected ${socket.id}`);
+      console.log(socket.data.username);
+      if (await redisClient.exists(socket.data.username)) {
+        redisClient.del(socket.data.username);
+        liveConnections--;
+        redisClient.set("connections", liveConnections);
       }
+
+      io.emit(EVENTS.SERVER.CONNECTIONS, {
+        connections: liveConnections,
+      });
     });
 
     /*
@@ -96,20 +106,26 @@ function socket({ io }: { io: Server }) {
      */
 
     socket.on(
-      EVENTS.CLIENT.SEND_ROOM_MESSAGE,
-      ({ roomId, message, username }) => {
+      EVENTS.CLIENT.SEND_MESSAGE,
+      async ({ message, username }) => {
         const date = new Date();
-        logger.info(`New Message from ${username}: ${message}`);
-
-        if (io.sockets.sockets.size > 1) {
-          socket.to(roomId).emit(EVENTS.SERVER.ROOM_MESSAGE, {
+        if (liveConnections > 1) {
+          console.log(`NEW MESSAGE FROM ${username}`)
+          socket.broadcast.emit(EVENTS.SERVER.NEW_MESSAGE, {
             message,
             username,
             time: `${date.getHours()}:${date.getMinutes()}`,
           });
         } else {
-          messageQueue.push({message, time: `${date.getHours()}:${date.getMinutes()}`, username})
-          console.log('ADD TO QUEUE =>', messageQueue)
+          addMessageToQueue(
+            username === "Malu" ? "Milan" : "Malu",
+            {
+              message,
+              time: `${date.getHours()}:${date.getMinutes()}`,
+              username,
+            },
+            redisClient
+          );
         }
       }
     );
@@ -123,11 +139,11 @@ function socket({ io }: { io: Server }) {
       socket.emit(EVENTS.SERVER.JOINED_ROOM, roomId);
     });
 
-    socket.on(EVENTS.CLIENT.DOWNSTREAM, (username: string) => {
-      console.log(`SLICE FOR ${username}`)
-      messageQueue = messageQueue.filter(msg => msg.username === username)
-      console.log(messageQueue)
-    })
+    socket.on(EVENTS.CLIENT.DOWNSTREAM, async (username: string) => {
+      if (await redisClient.exists(`queue:${username}`)) {
+        redisClient.del(`queue:${username}`);
+      }
+    });
   });
 }
 

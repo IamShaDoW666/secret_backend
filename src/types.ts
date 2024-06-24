@@ -4,3 +4,9 @@ export interface Message {
     time: string
     sent?: boolean
 }
+
+export interface User {
+    username: string
+    joined: Date
+    clientId: string
+}

@@ -2,7 +2,6 @@ import express, { Request, Response, Express } from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import socket from "./socket";
-import logger from "./utils/logger";
 
 const port = 5000;
 // const nextApp = next({ dev: true });
@@ -18,7 +17,6 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 httpServer.listen(port, "0.0.0.0", () => {
-  logger.info(`Server is listening port ${port}`);
   socket({ io });
 });
 // });
