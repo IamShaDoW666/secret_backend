@@ -152,8 +152,8 @@ async function socket({ io }: { io: Server }) {
     /**
      * When a user is poked
      */
-    socket.on(EVENTS.CLIENT.POKE, async (uname: string) => {
-     sendPoke(uname)
+    socket.on(EVENTS.CLIENT.POKE, async ({username}) => {
+     sendPoke(username)
     });
   });
 }
