@@ -22,7 +22,7 @@ export const sendPoke = async (username: string, message?: string) => {
         body: message,
       }
     : getNotificationMessage();
-  console.log(toSend, `${msg.heading}  ${msg.body}`);
+  console.log(toSend, `${msg.heading}  ${msg.body}, ${username}`);
   await admin.messaging().send({
     notification: {
       title: msg.heading,
