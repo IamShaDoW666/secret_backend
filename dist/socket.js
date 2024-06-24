@@ -139,8 +139,8 @@ function socket({ io }) {
             /**
              * When a user is poked
              */
-            socket.on(EVENTS.CLIENT.POKE, (uname) => __awaiter(this, void 0, void 0, function* () {
-                (0, common_1.sendPoke)(uname);
+            socket.on(EVENTS.CLIENT.POKE, ({ username }) => __awaiter(this, void 0, void 0, function* () {
+                (0, common_1.sendPoke)(username);
             }));
         }));
     });
