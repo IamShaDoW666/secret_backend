@@ -35,7 +35,7 @@ const sendPoke = (username, message) => __awaiter(void 0, void 0, void 0, functi
             body: message,
         }
         : (0, exports.getNotificationMessage)();
-    console.log(toSend, `${msg.heading}  ${msg.body}`);
+    console.log(toSend, `${msg.heading}  ${msg.body}, ${username}`);
     yield firebase_admin_1.default.messaging().send({
         notification: {
             title: msg.heading,
