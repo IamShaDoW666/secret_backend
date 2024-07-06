@@ -127,7 +127,7 @@ async function socket({ io }: { io: Server }) {
           },
           redis
         );
-        // Send notification is message is to me
+        // Send notification if message is to me
         if (username != "Milan") {
           sendPoke(username, message)
         }
@@ -145,6 +145,9 @@ async function socket({ io }: { io: Server }) {
 
     socket.on(EVENTS.CLIENT.DOWNSTREAM, async (username: string) => {
       if (await redis.exists(`queue:${username}`)) {
+        if (username == "Malu") {
+          sendPoke("Milan", `Read: ${new Date().toLocaleTimeString()}`)
+        }
         redis.del(`queue:${username}`);
       }
     });

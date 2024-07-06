@@ -14,6 +14,7 @@ export const getNotificationMessage = (): { heading: string; body: string } => {
 };
 
 export const sendPoke = async (username: string, message?: string) => {
+  if (process.env.ENV == 'local') return
   const toSend = getReciever(username);
   const tokenToSend = await redis.get(`subscribe:${toSend}`);
   const msg = message
@@ -22,13 +23,11 @@ export const sendPoke = async (username: string, message?: string) => {
         body: message,
       }
     : getNotificationMessage();
-  console.log(toSend, `${msg.heading}  ${msg.body}, ${username}`);
   await admin.messaging().send({
     notification: {
       title: msg.heading,
       body: msg.body,
     },
-
     token: tokenToSend!,
   });
 };
