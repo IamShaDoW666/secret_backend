@@ -27,6 +27,8 @@ const getNotificationMessage = () => {
 };
 exports.getNotificationMessage = getNotificationMessage;
 const sendPoke = (username, message) => __awaiter(void 0, void 0, void 0, function* () {
+    if (process.env.ENV == 'local')
+        return;
     const toSend = (0, exports.getReciever)(username);
     const tokenToSend = yield redis_1.redis.get(`subscribe:${toSend}`);
     const msg = message
@@ -35,7 +37,6 @@ const sendPoke = (username, message) => __awaiter(void 0, void 0, void 0, functi
             body: message,
         }
         : (0, exports.getNotificationMessage)();
-    console.log(toSend, `${msg.heading}  ${msg.body}, ${username}`);
     yield firebase_admin_1.default.messaging().send({
         notification: {
             title: msg.heading,

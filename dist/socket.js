@@ -118,7 +118,7 @@ function socket({ io }) {
                         time: `${date.getHours()}:${date.getMinutes()}`,
                         username,
                     }, redis_1.redis);
-                    // Send notification is message is to me
+                    // Send notification if message is to me
                     if (username != "Milan") {
                         (0, common_1.sendPoke)(username, message);
                     }
@@ -133,6 +133,9 @@ function socket({ io }) {
             });
             socket.on(EVENTS.CLIENT.DOWNSTREAM, (username) => __awaiter(this, void 0, void 0, function* () {
                 if (yield redis_1.redis.exists(`queue:${username}`)) {
+                    if (username == "Malu") {
+                        (0, common_1.sendPoke)("Milan", `Read: ${new Date().toLocaleTimeString()}`);
+                    }
                     redis_1.redis.del(`queue:${username}`);
                 }
             }));
