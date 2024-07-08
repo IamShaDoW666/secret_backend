@@ -47,7 +47,6 @@ function socket({ io }) {
             const username = socket.handshake.query.username;
             socket.data.username = username;
             if (!(yield redis_1.redis.exists(username))) {
-                socket.data.username = username;
                 redis_1.redis.hSet(username, {
                     clientId: socket.id,
                     joined: new Date().toJSON(),
@@ -71,6 +70,11 @@ function socket({ io }) {
             socket.on(EVENTS.disconnect, () => __awaiter(this, void 0, void 0, function* () {
                 console.log(`Client disconnected ${socket.id}`);
                 console.log(socket.data.username);
+                redis_1.redis.hSet(`time:${socket.data.username}`, {
+                    clientId: socket.id,
+                    lastOnline: new Date().toJSON(),
+                    username,
+                });
                 if (yield redis_1.redis.exists(socket.data.username)) {
                     redis_1.redis.del(socket.data.username);
                     liveConnections--;

@@ -39,12 +39,11 @@ async function socket({ io }: { io: Server }) {
     const username = socket.handshake.query.username as string;
     socket.data.username = username;
     if (!(await redis.exists(username))) {
-      socket.data.username = username;
       redis.hSet(username, {
         clientId: socket.id,
         joined: new Date().toJSON(),
         username,
-      });
+      });      
       console.log("BEFORE: CONNECTIONSS", liveConnections);
       liveConnections++;
       console.log("ADD CONNECTIONSS", liveConnections);
@@ -70,6 +69,11 @@ async function socket({ io }: { io: Server }) {
     socket.on(EVENTS.disconnect, async () => {
       console.log(`Client disconnected ${socket.id}`);
       console.log(socket.data.username);
+      redis.hSet(`time:${socket.data.username}`, {
+        clientId: socket.id,
+        lastOnline: new Date().toJSON(),
+        username,
+      });
       if (await redis.exists(socket.data.username)) {
         redis.del(socket.data.username);
         liveConnections--;
