@@ -69,9 +69,11 @@ async function socket({ io }: { io: Server }) {
     socket.on(EVENTS.disconnect, async () => {
       console.log(`Client disconnected ${socket.id}`);
       console.log(socket.data.username);
+      let time = new Date()
       redis.hSet(`time:${socket.data.username}`, {
         clientId: socket.id,
-        lastOnline: new Date().toJSON(),
+        lastOnline: time.toJSON(),
+        time: time.toString(),
         username,
       });
       if (await redis.exists(socket.data.username)) {
