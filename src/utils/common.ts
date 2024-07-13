@@ -23,11 +23,11 @@ export const sendPoke = async (username: string, message?: string) => {
         body: message,
       }
     : getNotificationMessage();
-  // await admin.messaging().send({
-  //   notification: {
-  //     title: msg.heading,
-  //     body: msg.body,
-  //   },
-  //   token: tokenToSend!,
-  // });
+  await admin.messaging().send({
+    notification: {
+      title: msg.heading,
+      body: msg.body,
+    },
+    token: tokenToSend!,
+  });
 };

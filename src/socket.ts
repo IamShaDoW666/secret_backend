@@ -152,7 +152,7 @@ async function socket({ io }: { io: Server }) {
     socket.on(EVENTS.CLIENT.DOWNSTREAM, async (username: string) => {
       if (await redis.exists(`queue:${username}`)) {
         if (username == "Malu") {
-          sendPoke("Milan", `Read: ${new Date().toLocaleTimeString()}`)
+          sendPoke(username, `Read: ${new Date().toLocaleTimeString()}`)
         }
         redis.del(`queue:${username}`);
       }

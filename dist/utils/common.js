@@ -16,6 +16,7 @@ exports.sendPoke = exports.getNotificationMessage = exports.getReciever = void 0
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const redis_1 = require("./redis");
+const firebase_admin_1 = __importDefault(require("firebase-admin"));
 const getReciever = (username) => username == "Milan" ? "Malu" : "Milan";
 exports.getReciever = getReciever;
 const getNotificationMessage = () => {
@@ -36,12 +37,12 @@ const sendPoke = (username, message) => __awaiter(void 0, void 0, void 0, functi
             body: message,
         }
         : (0, exports.getNotificationMessage)();
-    // await admin.messaging().send({
-    //   notification: {
-    //     title: msg.heading,
-    //     body: msg.body,
-    //   },
-    //   token: tokenToSend!,
-    // });
+    yield firebase_admin_1.default.messaging().send({
+        notification: {
+            title: msg.heading,
+            body: msg.body,
+        },
+        token: tokenToSend,
+    });
 });
 exports.sendPoke = sendPoke;
