@@ -9,7 +9,7 @@ const port = 5000;
 const app: Express = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer);
-initFirebase()
+initFirebase();
 app.get("/", (req: Request, res: Response) => {
   res.json({ status: true, message: "Ok" });
 });
@@ -20,7 +20,7 @@ app.post(
   "/subscribe",
   async (req: Request<{}, {}, { token: string; username: string }>, res) => {
     const { token, username } = req.body;
-    console.log(`NEW TOKEN CAME IN`)
+    console.log(`NEW TOKEN CAME IN`);
     if (token && username) {
       const response = await redis.set(`subscribe:${username}`, token);
       if (response) {
@@ -31,6 +31,20 @@ app.post(
     }
   }
 );
+
+app.get("/token", async (req: Request<{}, {}, { username: string }>, res) => {
+  const { username } = req.query;
+  if (username) {
+    const response = await redis.get(`subscribe:${username}`);
+    if (response) {
+      res.status(200).json({ success: true, token: response });
+    } else {
+      res.status(500).json({ success: false });
+    }
+  } else {
+    res.status(500).json({ success: false });
+  }
+});
 
 httpServer.listen(port, "0.0.0.0", () => {
   console.log(`Server online on port: ${port}`);

@@ -40,6 +40,21 @@ app.post("/subscribe", (req, res) => __awaiter(void 0, void 0, void 0, function*
         }
     }
 }));
+app.get("/token", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { username } = req.query;
+    if (username) {
+        const response = yield redis_1.redis.get(`subscribe:${username}`);
+        if (response) {
+            res.status(200).json({ success: true, token: response });
+        }
+        else {
+            res.status(500).json({ success: false });
+        }
+    }
+    else {
+        res.status(500).json({ success: false });
+    }
+}));
 httpServer.listen(port, "0.0.0.0", () => {
     console.log(`Server online on port: ${port}`);
     (0, socket_1.default)({ io });
