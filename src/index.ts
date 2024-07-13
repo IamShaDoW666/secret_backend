@@ -46,6 +46,20 @@ app.get("/token", async (req: Request<{}, {}, { username: string }>, res) => {
   }
 });
 
+app.get("/last-online", async (req: Request<{}, {}, { username: string }>, res) => {
+  const { username } = req.query;
+  if (username) {
+    const response = await redis.hGetAll(`time:${username}`);
+    if (response) {
+      res.status(200).json({ success: true, data: response });
+    } else {
+      res.status(500).json({ success: false });
+    }
+  } else {
+    res.status(500).json({ success: false });
+  }
+});
+
 httpServer.listen(port, "0.0.0.0", () => {
   console.log(`Server online on port: ${port}`);
   socket({ io });

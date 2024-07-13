@@ -14,7 +14,7 @@ export const getNotificationMessage = (): { heading: string; body: string } => {
 };
 
 export const sendPoke = async (username: string, message?: string) => {
-  if (process.env.ENV == 'local') return
+  if (process.env.ENV == "local") return;
   const toSend = getReciever(username);
   const tokenToSend = await redis.get(`subscribe:${toSend}`);
   const msg = message
