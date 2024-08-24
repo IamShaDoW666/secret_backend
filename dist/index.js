@@ -48,7 +48,7 @@ app.get("/token", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             res.status(200).json({ success: true, token: response });
         }
         else {
-            res.status(500).json({ success: false });
+            res.status(200).json({ success: true, token: null });
         }
     }
     else {

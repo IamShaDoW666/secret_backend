@@ -115,13 +115,13 @@ function socket({ io }) {
                     socket.broadcast.emit(EVENTS.SERVER.NEW_MESSAGE, {
                         message,
                         username,
-                        time: `${date.getHours()}:${date.getMinutes()}`,
+                        time: date.toJSON(),
                     });
                 }
                 else {
                     (0, redis_1.addMessageToQueue)((0, common_1.getReciever)(username), {
                         message,
-                        time: `${date.getHours()}:${date.getMinutes()}`,
+                        time: date.toJSON(),
                         username,
                     }, redis_1.redis);
                     // Send notification if message is to me
