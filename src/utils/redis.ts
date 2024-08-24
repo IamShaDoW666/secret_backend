@@ -1,9 +1,7 @@
 import { createClient } from "redis";
 import { Message } from "../types";
-import { promisify } from 'util';
 
 // LIVE
-
 export const redis = createClient({
   password: "WTMdjPmMqMZVXB95PQZGpmsvAKz3Tppl",
   socket: {
@@ -39,7 +37,10 @@ export async function addMessageToQueue(
   client.rPush(`queue:${username}`, messageData);
 }
 
-export async function getAllMessages(username: string, client: any): Promise<Message[]> {
+export async function getAllMessages(
+  username: string,
+  client: any
+): Promise<Message[]> {
   const messages = await client.lRange(`queue:${username}`, 0, -1);
   return messages.map((message: string) => JSON.parse(message) as Message);
 }

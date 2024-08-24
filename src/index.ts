@@ -39,7 +39,7 @@ app.get("/token", async (req: Request<{}, {}, { username: string }>, res) => {
     if (response) {
       res.status(200).json({ success: true, token: response });
     } else {
-      res.status(500).json({ success: false });
+      res.status(200).json({ success: true, token: null });
     }
   } else {
     res.status(500).json({ success: false });

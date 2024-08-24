@@ -121,14 +121,14 @@ async function socket({ io }: { io: Server }) {
         socket.broadcast.emit(EVENTS.SERVER.NEW_MESSAGE, {
           message,
           username,
-          time: `${date.getHours()}:${date.getMinutes()}`,
+          time: date.toJSON(),
         });
       } else {
         addMessageToQueue(
           getReciever(username),
           {
             message,
-            time: `${date.getHours()}:${date.getMinutes()}`,
+            time: date.toJSON(),
             username,
           },
           redis
