@@ -13,10 +13,11 @@ exports.getAllMessages = exports.addMessageToQueue = exports.useRedis = exports.
 const redis_1 = require("redis");
 // LIVE
 exports.redis = (0, redis_1.createClient)({
-    password: "WTMdjPmMqMZVXB95PQZGpmsvAKz3Tppl",
+    username: "default",
+    password: "25ANV8MrMwnUOXhl2oMxiElcmhnwKk1o",
     socket: {
-        host: "redis-12998.c264.ap-south-1-1.ec2.redns.redis-cloud.com",
-        port: 12998,
+        host: "redis-13462.c212.ap-south-1-1.ec2.redns.redis-cloud.com",
+        port: 13462,
     },
 });
 // LOCAL
