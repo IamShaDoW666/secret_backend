@@ -3,10 +3,11 @@ import { Message } from "../types";
 
 // LIVE
 export const redis = createClient({
-  password: "WTMdjPmMqMZVXB95PQZGpmsvAKz3Tppl",
+  username: "default",
+  password: "25ANV8MrMwnUOXhl2oMxiElcmhnwKk1o",
   socket: {
-    host: "redis-12998.c264.ap-south-1-1.ec2.redns.redis-cloud.com",
-    port: 12998,
+    host: "redis-13462.c212.ap-south-1-1.ec2.redns.redis-cloud.com",
+    port: 13462,
   },
 });
 
