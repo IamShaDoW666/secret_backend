@@ -1,7 +1,7 @@
 import { Server, Socket } from "socket.io";
 import { nanoid } from "nanoid";
 import { addMessageToQueue, getAllMessages, redis } from "./utils/redis";
-import { getNotificationMessage, getReciever, sendPoke } from "./utils/common";
+import { getReciever, sendPoke } from "./utils/common";
 import admin from 'firebase-admin'
 
 const EVENTS = {

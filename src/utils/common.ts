@@ -7,7 +7,7 @@ export const getReciever = (username: string) =>
   username == "Milan" ? "Malu" : "Milan";
 
 export const getNotificationMessage = (): { heading: string; body: string } => {
-  const messagesFilePath = path.join(__dirname, "../data/notifications.json");
+  const messagesFilePath = path.join(__dirname, "../../src/data/notifications.json");  
   const data = fs.readFileSync(messagesFilePath, "utf8");
   const allMessages = [...JSON.parse(data).taskMessages];
   return allMessages[Math.floor(Math.random() * allMessages.length)];
