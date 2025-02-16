@@ -5,11 +5,12 @@ import socket from "./socket";
 import { redis } from "./utils/redis";
 import { initFirebase } from "./utils/firebase";
 
-const port = 5000;
+const port = process.env.PORT ? parseInt(process.env.PORT) : 5100;
 const app: Express = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer);
 initFirebase();
+
 app.get("/", (req: Request, res: Response) => {
   res.json({ status: true, message: "Ok" });
 });
