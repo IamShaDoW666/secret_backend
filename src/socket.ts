@@ -2,7 +2,6 @@ import { Server, Socket } from "socket.io";
 import { nanoid } from "nanoid";
 import { addMessageToQueue, getAllMessages, redis } from "./utils/redis";
 import { getReciever, sendPoke } from "./utils/common";
-import admin from 'firebase-admin'
 
 const EVENTS = {
   connection: "connection",
@@ -27,7 +26,15 @@ const EVENTS = {
 };
 
 async function socket({ io }: { io: Server }) {
-  let liveConnections = Number(await redis.get("connections")) ?? 0;
+  let liveConnections = 0;
+  redis.set("connections", 0);  
+  const deleteUserKeys = async () => {
+    const keys = await redis.keys('user:*');
+    if (keys.length > 0) {
+      await redis.del(keys);
+    }
+  };
+  await deleteUserKeys();
   io.on(EVENTS.connection, async (socket: Socket) => {
     socket.onAny((event) => {
       console.warn(`EVENT: ${event}`);
@@ -37,9 +44,10 @@ async function socket({ io }: { io: Server }) {
     });
 
     const username = socket.handshake.query.username as string;
+    console.log(`USERR: ${username}`)
     socket.data.username = username;
     if (!(await redis.exists(username))) {
-      redis.hSet(username, {
+      redis.hSet(`user:${username}`, {
         clientId: socket.id,
         joined: new Date().toJSON(),
         username,
@@ -76,8 +84,8 @@ async function socket({ io }: { io: Server }) {
         time: time.toString(),
         username,
       });
-      if (await redis.exists(socket.data.username)) {
-        redis.del(socket.data.username);
+      if (await redis.exists(`user:${socket.data.username}`)) {
+        redis.del(`user:${socket.data.username}`);
         liveConnections--;
         redis.set("connections", liveConnections);
       }
