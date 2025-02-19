@@ -6,13 +6,14 @@ import { redis } from "./utils/redis";
 import { initFirebase } from "./utils/firebase";
 
 const port = process.env.PORT ? parseInt(process.env.PORT) : 5100;
+const INSTANCE_ID = Math.random().toString(36).slice(2,8) // Unique ID
 const app: Express = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer);
 initFirebase();
 
 app.get("/", (req: Request, res: Response) => {
-  res.json({ status: true, message: "Ok" });
+  res.json({ status: true, message: "Ok", id: INSTANCE_ID });
 });
 
 app.use(express.json());
