@@ -1,8 +1,6 @@
 import { Server, Socket } from "socket.io";
-import { nanoid } from "nanoid";
 import { addMessageToQueue, getAllMessages, redis } from "./utils/redis";
 import { getReciever, sendPoke } from "./utils/common";
-import { messaging } from "firebase-admin";
 
 const EVENTS = {
   connection: "connection",
@@ -31,6 +29,9 @@ const EVENTS = {
 async function socket({ io }: { io: Server }) {
   let liveConnections = 0;
   redis.set("connections", 0);
+  setInterval(() => {
+    console.log("LIVE CONNECTIONS", liveConnections);
+  }, 2500);
   const deleteUserKeys = async () => {
     const keys = await redis.keys("user:*");
     if (keys.length > 0) {
@@ -47,7 +48,6 @@ async function socket({ io }: { io: Server }) {
     });
 
     const username = socket.handshake.query.username as string;
-    console.log(`USERR: ${username}`);
     socket.data.username = username;
     if (!(await redis.exists(username))) {
       redis.hSet(`user:${username}`, {
@@ -55,13 +55,11 @@ async function socket({ io }: { io: Server }) {
         joined: new Date().toJSON(),
         username,
       });
-      console.log("BEFORE: CONNECTIONSS", liveConnections);
       liveConnections++;
-      console.log("ADD CONNECTIONSS", liveConnections);
       redis.set("connections", liveConnections);
     }
 
-    console.info(`Client connected ${socket.id} ${liveConnections}`);
+    console.log(`CONNECTED: ${username} TOTAL: ${liveConnections}`);
 
     io.emit(EVENTS.SERVER.CONNECTIONS, {
       connections: liveConnections,
@@ -77,8 +75,7 @@ async function socket({ io }: { io: Server }) {
      * When a user disconnects
      */
     socket.on(EVENTS.disconnect, async () => {
-      console.log(`Client disconnected ${socket.id}`);
-      console.log(socket.data.username);
+      console.log(`Client disconnected ${socket.data.username}`);
       let time = new Date();
       redis.hSet(`time:${socket.data.username}`, {
         clientId: socket.id,
@@ -86,6 +83,7 @@ async function socket({ io }: { io: Server }) {
         time: time.toString(),
         username,
       });
+      
       if (await redis.exists(`user:${socket.data.username}`)) {
         redis.del(`user:${socket.data.username}`);
         liveConnections--;
