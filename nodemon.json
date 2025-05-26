@@ -1,0 +1,7 @@
+{
+  "watch": ["src"],
+  "ext": "ts",
+  "ignore": ["*.test.ts"],
+  "exec": "node --env-file=.env -r ts-node/register src/index.ts",
+  "restartable": false
+}
