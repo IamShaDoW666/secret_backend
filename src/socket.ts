@@ -2,6 +2,9 @@ import { Server, Socket } from "socket.io";
 import { getReciever, sendDelivered, sendPoke } from "./utils/common";
 import { addMessageToQueue, getAllMessages, redis } from "./utils/redis";
 import { Message } from "./types";
+import { USER_TWO } from "./utils/constants";
+import fs from "fs";
+import { nanoid } from "nanoid";
 
 export const EVENTS = {
   connection: "connection",
@@ -10,6 +13,7 @@ export const EVENTS = {
     CREATE_ROOM: "CREATE_ROOM",
     SEND_ROOM_MESSAGE: "SEND_ROOM_MESSAGE",
     SEND_MESSAGE: "SEND_MESSAGE",
+    SEND_AUDIO: "SEND_AUDIO",
     MESSAGE_ENQUEUED: "MESSAGE_ENQUEUED",
     MESSAGE_DEQUEUED: "MESSAGE_DEQUEUED",
     MESSAGE_DELIVERED: "MESSAGE_DELIVERED",
@@ -25,6 +29,7 @@ export const EVENTS = {
     JOINED_ROOM: "JOINED_ROOM",
     ROOM_MESSAGE: "ROOM_MESSAGE",
     NEW_MESSAGE: "NEW_MESSAGE",
+    NEW_AUDIO: "NEW_AUDIO",
     MESSAGE_ENQUEUED: "MESSAGE_ENQUEUED",
     MESSAGE_DEQUEUED: "MESSAGE_DEQUEUED",
     MESSAGE_DELIVERED: "MESSAGE_DELIVERED",
@@ -141,6 +146,7 @@ async function socket({ io }: { io: Server }) {
           {
             id: msg.id,
             message: msg.message,
+            type: msg.type,
             time: date.toJSON(),
             username,
             status: "SENDING",
@@ -179,6 +185,63 @@ async function socket({ io }: { io: Server }) {
       });
     });
 
+    /*
+     * When a user sends an audio message
+     */
+    socket.on(
+      EVENTS.CLIENT.SEND_AUDIO,
+      async ({ audio, message }, callback) => {
+        const buffer = Buffer.from(audio);
+        const uint8Array = new Uint8Array(buffer);
+        const fileName = `${nanoid(5)}.m4a`;
+        fs.writeFile(`./public/audio/${fileName}`, uint8Array, (err) => {
+          if (err) throw err;
+          console.log("Audio file saved!");
+        });
+        const messageData = JSON.parse(message) as Message;
+        if (onlineUsers.has(getReciever(username))) {
+          console.log(`NEW AUDIO FROM ${username}`);
+          socket.broadcast.emit(EVENTS.SERVER.NEW_AUDIO, {
+            id: messageData.id,
+            path: `${process.env.BASE_URL}/audio/${fileName}`,
+            fileName,
+            type: "audio",
+            message: messageData.message,
+            username,
+            time: new Date().toJSON(),
+          });
+        } else {
+          const sent = await addMessageToQueue(
+            getReciever(username),
+            {
+              id: messageData.id,
+              message: messageData.message,
+              path: `${process.env.BASE_URL}/audio/${fileName}`,
+              type: "audio",
+              time: new Date().toJSON(),
+              username,
+              status: "SENDING",
+            },
+            redis
+          );
+          if (sent) {
+            socket.broadcast.emit(EVENTS.SERVER.MESSAGE_ENQUEUED, {
+              id: JSON.parse(message).id,
+            });
+            const newMsg = JSON.parse(
+              (await redis.lindex(`queue:${getReciever(username)}`, -1))!
+            ) as Message;
+            newMsg.status = "DELIVERED";
+            await redis.lset(
+              `queue:${getReciever(username)}`,
+              -1,
+              JSON.stringify(newMsg)
+            );
+          }
+        }
+      }
+    );
+
     /**
      * When a user is poked
      */
@@ -201,7 +264,7 @@ async function socket({ io }: { io: Server }) {
      */
     socket.on(EVENTS.CLIENT.DOWNSTREAM, async () => {
       console.log(`DOWN: ${username}`);
-      if (username == "Malu") {
+      if (username == USER_TWO) {
         sendPoke(username, `Read: ${new Date().toLocaleTimeString()}`);
       }
       redis.del(`queue:${username}`);

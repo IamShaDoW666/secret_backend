@@ -3,8 +3,9 @@ import path from "path";
 import { redis } from "./redis";
 import admin from "firebase-admin";
 import { Message } from "../types";
+import { USER_TWO } from "./constants";
 export const getReciever = (username: string) =>
-  username == "Milan" ? "Malu" : "Milan";
+  username == "Milan" ? USER_TWO : "Milan";
 
 export const getNotificationMessage = (): { heading: string; body: string } => {
   const messagesFilePath = path.join(
@@ -19,8 +20,7 @@ export const getNotificationMessage = (): { heading: string; body: string } => {
 export const sendPoke = async (username: string, message?: string) => {
   // if (process.env.ENV == "local") return;
   const toSend = getReciever(username);
-  const tokenToSend = await redis.get(`subscribe:${toSend}`);
-  if (!tokenToSend) return;
+  console.log(`Sending poke to ${toSend}`);
   const msg = message
     ? {
         heading: `New message!`,
@@ -33,7 +33,7 @@ export const sendPoke = async (username: string, message?: string) => {
         title: msg.heading,
         body: msg.body,
       },
-      topic: getReciever(username),
+      topic: toSend,
     });
   } catch (error) {
     console.log(error);
@@ -55,6 +55,21 @@ export const sendDelivered = async (
         message: JSON.stringify(message),
       },
       topic: toSend,
+    });
+    console.log(res);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const sendSwitchNotif = async (username: string) => {
+  // if (process.env.ENV == "local") return;
+  try {
+    const res = await admin.messaging().send({
+      data: {
+        switchnotif: "true",
+      },
+      topic: username,
     });
     console.log(res);
   } catch (error) {
