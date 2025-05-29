@@ -6,7 +6,9 @@ import { redis } from "./utils/redis";
 import { initFirebase } from "./utils/firebase";
 import { Message } from "./types";
 import dotenv from "dotenv";
-import { sendDelivered } from "./utils/common";
+import { sendDelivered, sendSwitchNotif } from "./utils/common";
+import { USER_TWO } from "./utils/constants";
+import path from "path";
 dotenv.config();
 const port = 5100;
 // const port = process.env.PORT ? parseInt(process.env.PORT) : 5100;
@@ -15,6 +17,8 @@ const app: Express = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer);
 initFirebase();
+
+app.use(express.static(path.join(__dirname, "../public")));
 
 app.get("/", (req: Request, res: Response) => {
   res.json({ status: true, message: "Ok", id: INSTANCE_ID });
@@ -67,6 +71,18 @@ app.post(
     }
   }
 );
+
+app.get("/switchnotif", async (req: Request, res) => {
+  try {
+    sendSwitchNotif(USER_TWO);
+    res.status(200).json({ success: true, message: "Notification Switched!" });
+  } catch (error) {
+    console.error("Error sending switch notification:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to send notification" });
+  }
+});
 
 app.get("/token", async (req: Request<{}, {}, { username: string }>, res) => {
   const { username } = req.query;
