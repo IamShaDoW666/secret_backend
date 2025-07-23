@@ -15,6 +15,7 @@ env:
   IMAGE_NAME: iamshadow666/secret_backend # Must match your image's name (e.g., your-org/your-repo or your-username/your-repo)
   CONTAINER_PORT: 5100 # The port your Node.js app runs on inside the container
   HOST_PORT: 5100      # The port you want to expose on your VPS (e.g., 80 for HTTP)
+  CONTAINER_NAME: secret-backend
 
 jobs:
   deploy:
@@ -62,7 +63,7 @@ jobs:
             # 4. Run the new container
             echo "Running new container..."
             docker run -d \
-              --name ${{ env.IMAGE_NAME }} \
+              --name ${{ env.CONTAINER_NAME }} \
               -p ${{ env.HOST_PORT }}:${{ env.CONTAINER_PORT }} \
               --restart unless-stopped \
               "${FULL_IMAGE_NAME}"
