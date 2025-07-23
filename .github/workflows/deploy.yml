@@ -1,0 +1,70 @@
+name: Deploy to VPS
+
+on:
+  workflow_dispatch: # Allows manual triggering from GitHub Actions UI
+  # Or uncomment the lines below to trigger after 'Build and Push Docker Image' completes successfully
+  workflow_run:
+    workflows: ["Build and Push Docker Image"] # Name of your build-and-push workflow
+    types:
+      - completed
+    branches:
+      - main # Only run if the source branch was main
+
+env:
+  REGISTRY: ghcr.io # Must match your image's registry (e.g., ghcr.io or docker.io)
+  IMAGE_NAME: ${{ toLower(github.repository) }} # Must match your image's name (e.g., your-org/your-repo or your-username/your-repo)
+  CONTAINER_PORT: 5100 # The port your Node.js app runs on inside the container
+  HOST_PORT: 5100      # The port you want to expose on your VPS (e.g., 80 for HTTP)
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest # Use a fresh Ubuntu runner for deployment
+
+    # You might need specific permissions if using OIDC for cloud registries on the server
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository (optional, good for accessing any deploy scripts)
+        uses: actions/checkout@v4
+
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v1.0.3 # A popular action for SSH
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "--- Starting Deployment ---"
+
+            # 1. Log in to the Container Registry on the VPS (if private image)
+            # Use environment variables passed from GitHub Actions for username/password
+            echo "${{ secrets.REGISTRY_TOKEN }}" | docker login ${{ env.REGISTRY }} --username ${{ secrets.REGISTRY_USERNAME }} --password-stdin || true
+            # Note: REGISTRY_TOKEN and REGISTRY_USERNAME need to be GitHub secrets
+            # If using GHCR, REGISTRY_USERNAME is your GitHub username, REGISTRY_TOKEN is a PAT with 'packages:read' scope.
+            # If using Docker Hub, REGISTRY_USERNAME is your Docker Hub username, REGISTRY_TOKEN is a Docker Hub Access Token.
+
+            # If using GHCR and you've added your GH Actions token, you can also use:
+            # echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io --username ${{ github.actor }} --password-stdin || true
+
+            # Construct the full image name with 'latest' tag
+            FULL_IMAGE_NAME="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+
+            # 2. Stop and remove the old container (if running)
+            echo "Stopping and removing old container (if exists)..."
+            docker stop ${{ env.IMAGE_NAME }} || true
+            docker rm ${{ env.IMAGE_NAME }} || true
+
+            # 3. Pull the latest Docker image
+            echo "Pulling latest image: ${FULL_IMAGE_NAME}..."
+            docker pull "${FULL_IMAGE_NAME}"
+
+            # 4. Run the new container
+            echo "Running new container..."
+            docker run -d \
+              --name ${{ env.IMAGE_NAME }} \
+              -p ${{ env.HOST_PORT }}:${{ env.CONTAINER_PORT }} \
+              --restart unless-stopped \
+              "${FULL_IMAGE_NAME}"
+
+            echo "--- Deployment Complete ---"
