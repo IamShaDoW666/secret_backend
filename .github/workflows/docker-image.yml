@@ -8,7 +8,7 @@ on:
 env:
   # Define environment variables for the registry and image name
   REGISTRY: ghcr.io # Use ghcr.io for GitHub Container Registry
-  IMAGE_NAME: ${{ github.repository }} # Uses your GitHub repository name as the image name
+  IMAGE_NAME: iamshadow666/secret_backend # Uses your GitHub repository name as the image name
 
 jobs:
   build-and-push:
