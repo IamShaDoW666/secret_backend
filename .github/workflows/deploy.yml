@@ -36,7 +36,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             echo "--- Starting Deployment ---"
-
+            sudo su
             # 1. Log in to the Container Registry on the VPS (if private image)
             # Use environment variables passed from GitHub Actions for username/password
             echo "${{ secrets.REGISTRY_TOKEN }}" | docker login ${{ env.REGISTRY }} --username ${{ secrets.REGISTRY_USERNAME }} --password-stdin || true
