@@ -12,7 +12,7 @@ on:
 
 env:
   REGISTRY: ghcr.io # Must match your image's registry (e.g., ghcr.io or docker.io)
-  IMAGE_NAME: ${{ toLowerCase(github.repository) }} # Must match your image's name (e.g., your-org/your-repo or your-username/your-repo)
+  IMAGE_NAME: iamshadow666/secret_backend # Must match your image's name (e.g., your-org/your-repo or your-username/your-repo)
   CONTAINER_PORT: 5100 # The port your Node.js app runs on inside the container
   HOST_PORT: 5100      # The port you want to expose on your VPS (e.g., 80 for HTTP)
 
