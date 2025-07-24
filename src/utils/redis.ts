@@ -2,10 +2,10 @@ import { Message } from "../types";
 import { Redis } from "ioredis";
 
 export const redis = new Redis({
-  port: Number(process.env.REDIS_PORT!), // Redis port
-  host: process.env.REDIS_HOST!, // Redis host
-  username: process.env.REDIS_USERNAME!, // needs Redis >= 6
-  password: process.env.REDIS_PASSWORD!,
+  port: 19712,
+  host: "redis-19712.crce206.ap-south-1-1.ec2.redns.redis-cloud.com",
+  username: "default",
+  password: "OajFUwURLNHXstgxA6iYkrbRMwtUysuS",
   maxRetriesPerRequest: null,
 });
 
