@@ -1,8 +1,6 @@
 name: Deploy to VPS
 
 on:
-  workflow_dispatch: # Allows manual triggering from GitHub Actions UI
-  # Or uncomment the lines below to trigger after 'Build and Push Docker Image' completes successfully
   workflow_run:
     workflows: ["Build and Push Docker Image"] # Name of your build-and-push workflow
     types:
