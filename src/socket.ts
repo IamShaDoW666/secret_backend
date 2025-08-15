@@ -130,7 +130,7 @@ async function socket({ io }: { io: Server }) {
     socket.on(EVENTS.CLIENT.SEND_MESSAGE, async ({ message }, callback) => {
       const date = new Date();
       const msg = JSON.parse(message) as Message;
-      callback({ status: "ok", message: "Received!" });
+      // callback({ status: "ok", message: "Received!" });
       if (onlineUsers.has(getReciever(username))) {
         console.log(`NEW MESSAGE FROM ${username}`);
         socket.broadcast.emit(EVENTS.SERVER.NEW_MESSAGE, {
